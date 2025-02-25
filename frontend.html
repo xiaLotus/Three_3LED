@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三色燈控制</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
+
+    <div id="app">
+        <h1 class="text-3xl font-bold mb-4">三色燈控制</h1>
+
+        <!-- 只有當 status 有資料時才顯示燈 -->
+        <div v-if="status">
+            <!-- 三色燈 -->
+            <div class="flex flex-col items-center space-y-4">
+                <div class="w-24 h-24 rounded-full border-4 transition-all"
+                    :class="status.red ? 'bg-red-500 border-red-700' : 'bg-gray-700 border-gray-500'"></div>
+                <div class="w-24 h-24 rounded-full border-4 transition-all"
+                    :class="status.yellow ? 'bg-yellow-500 border-yellow-700' : 'bg-gray-700 border-gray-500'"></div>
+                <div class="w-24 h-24 rounded-full border-4 transition-all"
+                    :class="status.green ? 'bg-green-500 border-green-700' : 'bg-gray-700 border-gray-500'"></div>
+            </div>
+        </div>
+
+        <div v-else>
+            <p class="text-xl font-semibold text-gray-400">等待燈狀態數據...</p>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        const app = createApp({
+            setup() {
+                const apiUrl = "http://localhost:5000"; 
+                const status = ref(null); 
+
+                // 取得燈的狀態
+                const fetchStatus = async () => {
+                    try {
+                        const response = await axios.get(`${apiUrl}/status`);
+                        status.value = response.data;
+                    } catch (error) {
+                        console.error("❌ 無法獲取狀態:", error);
+                    }
+                };
+
+                // 自動刷新狀態
+                onMounted(() => {
+                    fetchStatus();
+                    setInterval(fetchStatus, 1000); 
+                });
+
+                return { status };
+            }
+        });
+
+        app.mount("#app");
+    </script>
+
+</body>
+</html>
